@@ -1,17 +1,17 @@
-import {Controller, GET} from 'fastify-decorators';
-import {HelloService} from "../services/HelloService";
+import { Controller, GET } from 'fastify-decorators'
+import { HelloService } from '../services/HelloService'
 
 @Controller()
 export default class HelloController {
-    private helloService = new HelloService()
+  private readonly helloService = new HelloService()
 
-    @GET()
-    async helloHandler() {
-        return this.helloService.hello()
-    }
+  @GET()
+  async helloHandler (): Promise<string> {
+    return await this.helloService.hello()
+  }
 
-    @GET("/a")
-    async goodbyeHandler() {
-        return 'Bye-bye!';
-    }
+  @GET('/a')
+  async goodbyeHandler (): Promise<string> {
+    return 'Bye-bye!'
+  }
 }

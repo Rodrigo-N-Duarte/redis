@@ -2,32 +2,26 @@ import Fastify from 'fastify'
 import {resolve} from 'path'
 import {PrismaClient} from "@prisma/client";
 import {bootstrap} from "fastify-decorators";
-import {createClient} from 'redis'
-import {rootLogger} from "ts-jest";
+import { createClient } from 'redis';
 
 const fastify = Fastify({
     logger: true
 })
 export const prisma = new PrismaClient()
 
+export const client: any = createClient();
 async function initServer() {
     try {
-        const redisClient = createClient({
-            socket: {
-                host: 'redis',
-                port: 6380,
-            },
-        });
-        redisClient.on('error', err => console.error('ERR:REDIS:', err));
-        await redisClient.connect();
-        createServerConnection();
+        client.on('error', err => console.log('Redis Client Error', err));
+        await client.connect();
+        await createServerConnection();
     } catch (e) {
         console.log(e)
         process.exit(0)
     }
 }
 
-const createServerConnection = () => {
+const createServerConnection = async () => {
     fastify.register(bootstrap, {
         directory: resolve(__dirname, `controllers`), mask: /./,
     })

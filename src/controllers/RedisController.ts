@@ -13,6 +13,10 @@ export default class RedisController {
   async get(): Promise<any> {
     return this.redisService.get()
   }
+  @GET('/redis')
+  async getRedis(): Promise<any> {
+    return this.redisService.getRedis()
+  }
   @DELETE()
   async deleteAll(): Promise<any> {
     return this.redisService.deleteAll()

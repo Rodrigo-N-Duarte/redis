@@ -1,16 +1,19 @@
 import {prisma} from "../app";
-import {createClient} from "redis";
+import {client} from "../app";
 export class RedisService {
     async fillDatabase(): Promise<{ success: boolean }> {
         try {
-            for (let i = 1; i <= 100; i++) {
-                await prisma.user.create({
+            let users: any = []
+            for (let i = 1; i <= 20000; i++) {
+                const user = await prisma.user.create({
                     data: {
                         name: `User #${i}`,
                         email: `user${i}email@email.com`,
                     },
                 })
+                users.push(user)
             }
+            await client.set('allUsers', JSON.stringify(users));
             return {success: true}
         } catch (e) {
             return e
@@ -18,20 +21,23 @@ export class RedisService {
     }
 
     async get(): Promise<any[]> {
-        // @ts-ignore
-        const redis = new createClient()
-        const redisResponse = redis.get('allUsers')
+        const users = await prisma.user.findMany();
+        await client.set('allUsers', JSON.stringify(users));
+        return users;
+    }
+
+    async getRedis(): Promise<any[]> {
+        const redisResponse = await client.get('allUsers');
         if (redisResponse) {
-            return JSON.parse(redisResponse)
+            return JSON.parse(redisResponse);
         }
-        const users = prisma.user.findMany();
-        await redis.set('allUsers', JSON.stringify(users))
-        return users
+        return []
     }
 
     async deleteAll(): Promise<{ success: boolean }> {
         try {
             await prisma.user.deleteMany()
+            await client.del('allUsers');
             return {success: true}
         } catch (e) {
             return {success: false}

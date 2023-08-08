@@ -4,11 +4,11 @@ export class RedisService {
     async fillDatabase(): Promise<{ success: boolean }> {
         try {
             let users: any = []
-            for (let i = 1; i <= 20000; i++) {
+            for (let i = 1; i <= 10; i++) {
                 const user = await prisma.user.create({
                     data: {
-                        name: `User #${i}`,
-                        email: `user${i}email@email.com`,
+                        id: i,
+                        name: `User #${i}`
                     },
                 })
                 users.push(user)
@@ -22,8 +22,12 @@ export class RedisService {
 
     async get(): Promise<any[]> {
         const users = await prisma.user.findMany();
-        await client.set('allUsers', JSON.stringify(users));
-        return users;
+        return new Promise((resolve) => {
+            setTimeout(async () => {
+                await client.set('allUsers', JSON.stringify(users));
+                resolve(users)
+            }, 500)
+        })
     }
 
     async getRedis(): Promise<any[]> {
@@ -36,7 +40,7 @@ export class RedisService {
 
     async deleteAll(): Promise<{ success: boolean }> {
         try {
-            await prisma.user.deleteMany()
+            await prisma.user.deleteMany({})
             await client.del('allUsers');
             return {success: true}
         } catch (e) {
